@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-fig, ax = plt.subplots(figsize=[5,4])
+fig,ax = plt.subplots(figsize=[5,4])
 '''
 plt.rcParams.update({
     "text.usetex": True,
@@ -11,18 +11,14 @@ plt.rcParams['font.size'] = 12
 data = np.genfromtxt('data/clearing-price/2019clearing.csv', delimiter=',')
 #print(data[0,1:].reshape((len(data[0,1:]),1)))
 #print(data.shape)
-fig, ax = plt.subplots()
 
 
 timeseries = np.array([])
 for row in data[:-1]:
-    print(row[0])
+    #print(row[0])
     timeseries = np.append(timeseries, row[1:])
 
 demand = np.genfromtxt('MIWI-demand-MWh.csv', delimiter=',')
-print(demand[:,-1])
-print(demand[:,-1].shape)
-print(timeseries.shape)
 
 #demand = demand[:,-1]
 ave_price = np.array([])
@@ -117,15 +113,25 @@ plt.ylabel('Clearing Price [$/MW]')
 plt.title('Pseudo-Michigan Hub Demand Curve')
 plt.savefig('demand-curve.png')
 '''
-'''
-print(timeseries)
-print(timeseries.shape)
-plt.plot(timeseries)
-ax.set_xticklabels(data[:,0].astype(int).astype(str))
+import matplotlib.dates as mdates
+import matplotlib.cbook as cbook
+import datetime
+numh = 8736
+base = datetime.datetime(2019,1,1)
+date_list = [base - datetime.timedelta(hours=x) for x in range(0, numh)]
+plt.plot(date_list,timeseries)
+# Set the locator
+locator = mdates.MonthLocator()  # every month
+# Specify the format - %b gives us Jan, Feb...
+fmt = mdates.DateFormatter('%b')
+X = plt.gca().xaxis
+X.set_major_locator(locator)
+# Specify formatter
+X.set_major_formatter(fmt)
 plt.grid()
-plt.xlabel('Date')
+plt.xlabel('Months of 2019')
 plt.ylabel('$/MW')
 plt.title('Michigan Hub Clearing Prices')
 
 plt.savefig('clearing-results.png')
-'''
+
