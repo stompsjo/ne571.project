@@ -19,17 +19,28 @@ for row in data[:-1]:
     timeseries = np.append(timeseries, row[1:])
 
 demand = np.genfromtxt('MIWI-demand-MWh.csv', delimiter=',')
-
+print(demand.shape)
+print(timeseries.shape)
 #demand = demand[:,-1]
 ave_price = np.array([])
 ave_demand = np.array([])
 for i in range(len(timeseries)):
-    ave = np.mean(timeseries[max(i-7,0):i])
-    ave_price = np.append(ave_price, ave)
+    if i == 0:
+        ave_price = np.append(ave_price, timeseries[0])
+        ave_demand = np.append(ave_demand, demand[0][-1])
+    else:
+        avep = np.mean(timeseries[max(i-7,0):i][-1])
+        ave_price = np.append(ave_price, avep)
 
-    ave = np.mean(demand[max(i-7,0):i])
-    ave_demand = np.append(ave_demand, ave)
+        aved = np.mean(demand[max(i-7,0):i])
+        ave_demand = np.append(ave_demand, aved)
 '''
+# calc the trendline
+z = np.polyfit(ave_demand, ave_price, 1)
+p = np.poly1d(z)
+plt.plot(ave_demand,p(ave_price),"r--")
+# the line equation:
+print("y=%.6fx+(%.6f)"%(z[0],z[1]))
 plt.scatter(ave_demand, ave_price)
 plt.grid()
 plt.xlabel('Demand [MWh]')
@@ -96,15 +107,35 @@ ax.set_ylim(0)
 plt.tight_layout()
 plt.savefig('node_clearing_duration_curve.png')
 '''
-'''
+lmp = np.genfromtxt('data/lmp/lmp.csv', delimiter=',')
+nodelmp = np.array([])
+for row in lmp[:-1]:
+    #print(row[0])
+    nodelmp = np.append(nodelmp, row[4:])
+
+mean = np.mean(nodelmp)
+standard_deviation = np.std(nodelmp)
+distance_from_mean = abs(nodelmp - mean)
+max_deviations = 2
+not_outlier = distance_from_mean < max_deviations * standard_deviation
+no_outliers = nodelmp[not_outlier]
+mask = np.isin(nodelmp, no_outliers)
+xs = demand[:,-1][mask]
+
+# calc the trendline
+z = np.polyfit(xs, no_outliers, 1)
+p = np.poly1d(z)
+plt.plot(xs,p(no_outliers),"r--")
+# the line equation:
+print("y=%.6fx+(%.6f)"%(z[0],z[1]))
 print(nodelmp.shape)
 plt.scatter(demand[:,-1],nodelmp)
 plt.grid()
 plt.xlabel('Demand [MWh]')
 plt.ylabel('Clearing Price [$/MW]')
 plt.title('Palisades Node Demand Curve')
-plt.savefig('node-demand-curve.png')
-'''
+plt.savefig('fitted-node-demand-curve.png')
+
 '''
 plt.scatter(demand[:,-1], timeseries)
 plt.grid()
@@ -112,6 +143,7 @@ plt.xlabel('Demand [MWh]')
 plt.ylabel('Clearing Price [$/MW]')
 plt.title('Pseudo-Michigan Hub Demand Curve')
 plt.savefig('demand-curve.png')
+'''
 '''
 import matplotlib.dates as mdates
 import matplotlib.cbook as cbook
@@ -134,4 +166,4 @@ plt.ylabel('$/MW')
 plt.title('Michigan Hub Clearing Prices')
 
 plt.savefig('clearing-results.png')
-
+'''
