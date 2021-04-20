@@ -1,6 +1,7 @@
+from matplotlib.markers import MarkerStyle
 import numpy as np
 import matplotlib.pyplot as plt
-fig,ax = plt.subplots(figsize=[5,4])
+fig,ax = plt.subplots(figsize=[7,5])
 '''
 plt.rcParams.update({
     "text.usetex": True,
@@ -48,7 +49,7 @@ plt.ylabel('Clearing Price [$/MW]')
 plt.title('7-day Rolling Average Pseudo-Michigan Hub Demand Curve')
 plt.savefig('rolling-ave-demand-curve.png')
 '''
-'''
+
 lmp = np.genfromtxt('data/lmp/lmp.csv', delimiter=',')
 nodelmp = np.array([])
 for row in lmp[:-1]:
@@ -60,15 +61,38 @@ X, F = np.unique(list(reversed(sorted(demand[:,-1]))), return_index=True)
 #ax = plt.gca()
 #ax.invert_xaxis()
 #print(list(reversed(sorted(demand[:,-1]))))
-plt.plot(F,X)
+
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+#threshold = find_nearest(np.flip(X), 0.8*max(X))
+threshold = find_nearest(np.flip(F), 0.8*max(F))
+constant = np.full_like(np.flip(X)[:threshold],np.flip(X)[threshold])
+constant = np.append(constant, np.flip(X)[threshold:])
+print(threshold/len(X))
+print(np.flip(X)[threshold])
+plt.plot(F,X,linewidth=3)
+#plt.fill_between(F,np.flip(constant),color='tab:green',alpha=0.75)
+t2 = find_nearest(np.flip(F), 0.1*max(F))
+c2 = np.full_like(np.flip(X)[:t2],np.flip(X)[t2])
+c2 = np.append(c2, np.flip(X)[t2:])
+print(t2/len(X))
+print(np.flip(X)[t2])
+plt.fill_between(F,X,color='tab:purple',alpha=0.75)
+plt.fill_between(F,np.flip(c2),color='tab:orange',alpha=0.75)
+plt.fill_between(F,np.flip(constant),color='tab:green',alpha=0.75)
+plt.vlines(np.flip(F)[t2],0,35000,colors='tab:gray',linestyles='--')
 plt.grid()
+plt.vlines(np.flip(F)[threshold],0,35000,colors='tab:gray',linestyles='--')
 plt.xlim(0,max(F))
-plt.ylim(0)
+plt.ylim(0,35000)
 plt.xlabel('Cumulative Hours at Load')
 plt.ylabel('Hourly Demand [MW]')
 plt.title('WI-MI Load Duration Curve')
-plt.savefig('load-curve.png')
-'''
+plt.savefig('fuller-shaded-load-curve.png')
+
 '''
 ###### Clearing Price Duration Curve for Michigan Hub
 X, F = np.unique(list(reversed(sorted(timeseries))), return_index=True)
@@ -142,7 +166,7 @@ plt.ylabel('Clearing Price [$/MW]')
 plt.title('Palisades Node Demand Curve')
 plt.savefig('fitted-node-demand-curve.png')
 '''
-
+'''
 mean = np.mean(timeseries)
 standard_deviation = np.std(timeseries)
 distance_from_mean = abs(timeseries - mean)
@@ -166,7 +190,7 @@ plt.xlabel('Demand [MWh]')
 plt.ylabel('Clearing Price [$/MW]')
 plt.title('Pseudo-Michigan Hub Demand Curve')
 plt.savefig('mean-fitted-demand-curve.png')
-
+'''
 '''
 import matplotlib.dates as mdates
 import matplotlib.cbook as cbook
