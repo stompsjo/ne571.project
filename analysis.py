@@ -107,6 +107,7 @@ ax.set_ylim(0)
 plt.tight_layout()
 plt.savefig('node_clearing_duration_curve.png')
 '''
+'''
 lmp = np.genfromtxt('data/lmp/lmp.csv', delimiter=',')
 nodelmp = np.array([])
 for row in lmp[:-1]:
@@ -125,25 +126,47 @@ xs = demand[:,-1][mask]
 # calc the trendline
 z = np.polyfit(xs, no_outliers, 1)
 p = np.poly1d(z)
-plt.plot(xs,p(no_outliers),"r--")
+plt.plot(xs,p(xs),"r--")
 # the line equation:
+print('Mean:',mean)
+print('STD:',standard_deviation)
 print("y=%.6fx+(%.6f)"%(z[0],z[1]))
 print(nodelmp.shape)
-plt.scatter(demand[:,-1],nodelmp)
+plt.scatter(demand[:,-1],nodelmp,s=2)
+plt.ylim(0,200)
+#plt.hlines(mean,10000,33000,color='black')
+plt.xlim(10000,33000)
 plt.grid()
 plt.xlabel('Demand [MWh]')
 plt.ylabel('Clearing Price [$/MW]')
 plt.title('Palisades Node Demand Curve')
 plt.savefig('fitted-node-demand-curve.png')
-
 '''
-plt.scatter(demand[:,-1], timeseries)
+
+mean = np.mean(timeseries)
+standard_deviation = np.std(timeseries)
+distance_from_mean = abs(timeseries - mean)
+max_deviations = 2
+not_outlier = distance_from_mean < max_deviations * standard_deviation
+no_outliers = timeseries[not_outlier]
+mask = np.isin(timeseries, no_outliers)
+xs = demand[:,-1][mask]
+z = np.polyfit(xs, no_outliers, 1)
+plt.scatter(demand[:,-1], timeseries,s=2)
+p = np.poly1d(z)
+plt.plot(xs,p(xs),"r--")
+print('Mean:',mean)
+print('STD:',standard_deviation)
+print("y=%.6fx+(%.6f)"%(z[0],z[1]))
 plt.grid()
+plt.ylim(0,100)
+plt.hlines(mean,10000,35000,colors='black')
+plt.xlim(10000,35000)
 plt.xlabel('Demand [MWh]')
 plt.ylabel('Clearing Price [$/MW]')
 plt.title('Pseudo-Michigan Hub Demand Curve')
-plt.savefig('demand-curve.png')
-'''
+plt.savefig('mean-fitted-demand-curve.png')
+
 '''
 import matplotlib.dates as mdates
 import matplotlib.cbook as cbook
